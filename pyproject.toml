@@ -1,19 +1,18 @@
-[build-system]
-requires = ["aiogram ~= 3.0.0b7", "setuptools"]
-
-[project]
-name = "aiogram_tests"
-version = "1.0.4"
-authors = [
-    { name = "Timur", email = "pavlov.timur556@yandex.ru" }
-]
+[tool.poetry]
+name = "aiogram-tests"
+version = "1.0.5"
 description = "A library for testing your bots on aiogram"
+authors = ["k0te1ch <khvostov40@gmail.com>"]
 readme = "README.md"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
 
-[project.urls]
-"Homepage" = "https://github.com/aiogram-tests/aiogram_tests"
+[tool.poetry.dependencies]
+python = "^3.10"
+aiogram = "^3.3.0"
+pytest = "^8.1.1"
+pytest-asyncio = "^0.23.6"
+tox = "^4.14.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
