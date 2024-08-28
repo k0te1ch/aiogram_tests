@@ -1,12 +1,12 @@
 # Aiogram Tests
 
-***aiogram_tests*** is a testing library for bots written on <a href="https://github.com/aiogram/aiogram">aiogram</a>
+***aiogram_tests*** is a testing library for bots written on [aiogram]("https://github.com/aiogram/aiogram")</a>
 
 ## 📚 Simple examples
 
 ### Simple handler test
 
-#### Simple bot:
+#### Simple bot
 
 ```python
 from aiogram import Bot, Dispatcher, types
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
 ```
 
-#### Test cases:
+#### Test cases
 
 ```python
 import pytest
@@ -49,5 +49,4 @@ async def test_echo():
 
 ```
 
-### ▶️ <a href='https://github.com/aiogram-tests/aiogram_tests/tree/master/examples'>More</a> examples
-
+### [▶️ More]("https://github.com/aiogram-tests/aiogram_tests/tree/master/examples") examples

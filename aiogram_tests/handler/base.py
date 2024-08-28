@@ -44,9 +44,6 @@ class RequestHandler:
         available_methods = tuple(set(dispatcher_methods) - set(exclude_observer_methods))
         self._register_middlewares(available_methods, tuple(dp_middlewares))
 
-        Bot.set_current(self.bot)
-        User.set_current(USER.as_object())
-        Chat.set_current(CHAT.as_object())
 
     def _get_dispatcher_event_observers(self) -> List[str]:
         """

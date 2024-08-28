@@ -12,7 +12,7 @@ from aiogram.methods.base import Request
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
 from aiogram.types import ResponseParameters
-from aiogram.types import UNSET
+from aiogram.types.base import UNSET_TYPE
 from aiogram.types import User
 
 
@@ -40,12 +40,21 @@ class MockedSession(BaseSession):
         self.closed = True
 
     async def make_request(
-        self, bot: Bot, method: TelegramMethod[TelegramType], timeout: Optional[int] = UNSET
+        self,
+        bot: Bot,
+        method: TelegramMethod[TelegramType],
+        timeout: Optional[int] = UNSET_TYPE,
     ) -> TelegramType:
         self.closed = False
-        self.requests.append(method.build_request(bot))
+        request = Request(method=method.__api_method__, data=method.__dict__, files = None)
+        self.requests.append(request)
         response: Response[TelegramType] = self.responses.pop()
-        self.check_response(method=method, status_code=response.error_code, content=response.json())
+        self.check_response(
+            method=method,
+            status_code=response.error_code,
+            content=response.model_dump_json(),
+            bot=bot,
+        )
         return response.result  # type: ignore
 
     async def stream_content(
@@ -56,7 +65,9 @@ class MockedSession(BaseSession):
 
 class MockedBot(Bot):
     def __init__(self, auto_mock_success: bool = DEFAULT_AUTO_MOCK_SUCCESS, **kwargs):
-        super().__init__(kwargs.pop("token", "42:TEST"), session=MockedSession(), **kwargs)
+        super().__init__(
+            kwargs.pop("token", "42:TEST"), session=MockedSession(), **kwargs
+        )
         self.session = MockedSession()
         self._me = User(
             id=self.id,
@@ -91,7 +102,9 @@ class MockedBot(Bot):
         self.session.add_result(response)
         return response
 
-    async def __call__(self, method: TelegramMethod, request_timeout: Optional[int] = None):
+    async def __call__(
+        self, method: TelegramMethod, request_timeout: Optional[int] = None
+    ):
         if self.auto_mock_success:
             self.add_result_for(method.__class__, ok=True)
         return await super().__call__(method, request_timeout)

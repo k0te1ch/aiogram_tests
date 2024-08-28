@@ -290,8 +290,19 @@ VOICE = DatasetItem(
     model=types.Voice,
 )
 
+MESSAGE = DatasetItem(
+    {
+        "message_id": 11223,
+        "from": USER,
+        "chat": CHAT,
+        "date": 1508709711,
+        "text": "Hi, world!",
+    },
+    model=types.Message,
+)
+
 CALLBACK_QUERY = DatasetItem(
-    {"id": 12345678, "chat_instance": "AABBCC", "from": USER, "chat": CHAT, "data": "data"}, model=types.CallbackQuery
+    {"id": "12345678", "chat_instance": "AABBCC", "from_user": USER, "message": MESSAGE, "data": "data"}, model=types.CallbackQuery
 )
 
 CHANNEL = DatasetItem(
@@ -344,11 +355,6 @@ FORWARDED_MESSAGE = DatasetItem(
         "text": "Forwarded text with entities from public channel ",
         "entities": [ENTITY_BOLD, ENTITY_CODE, ENTITY_ITALIC, ENTITY_LINK, ENTITY_LINK, ENTITY_MENTION, ENTITY_PRE],
     },
-    model=types.Message,
-)
-
-MESSAGE = DatasetItem(
-    {"message_id": 11223, "from": USER, "chat": CHAT, "date": 1508709711, "text": "Hi, world!"},
     model=types.Message,
 )
 
