@@ -18,6 +18,8 @@ supported aiogram version is recorded in the entry below.
 - Refresh the dependency lock so all transitive dependencies resolve to
   non-vulnerable versions (aiohttp `3.13.5`, certifi `2026.5.20`, idna `3.17`,
   pydantic `2.13.4`).
+- Bump dev tooling past known advisories: pytest `>=9.0.3` (tmpdir handling)
+  and pytest-asyncio `>=1.4.0`.
 
 ### Changed
 - Track the latest aiogram release: bump the constraint to `^3.28`.
