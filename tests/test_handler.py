@@ -1,10 +1,11 @@
 import pytest
 from aiogram.filters import StateFilter
 
-from .middleware import TestMiddleware
 from aiogram_tests.handler import MessageHandler
 from aiogram_tests.handler import RequestHandler
 from aiogram_tests.handler import TelegramEventObserverHandler
+
+from .middleware import TestMiddleware
 
 
 def test_request_handler_initialization():

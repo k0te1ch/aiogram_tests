@@ -1,23 +1,15 @@
-from typing import Iterable
-from typing import List
-from typing import Optional
-from typing import Type
+from collections.abc import Iterable
 
 from aiogram import BaseMiddleware
-from aiogram import Bot
 from aiogram import Dispatcher
 from aiogram.dispatcher.event.telegram import TelegramEventObserver
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
-from aiogram.types import Chat
-from aiogram.types import User
 
-from aiogram_tests.mocked_bot import MockedBot
 from aiogram_tests.mocked_bot import DEFAULT_AUTO_MOCK_SUCCESS
-from aiogram_tests.types.dataset import CHAT
-from aiogram_tests.types.dataset import USER
+from aiogram_tests.mocked_bot import MockedBot
 
 
 class RequestHandler:
@@ -26,7 +18,7 @@ class RequestHandler:
         dp_middlewares: Iterable[BaseMiddleware] = None,
         exclude_observer_methods: Iterable[str] = None,
         auto_mock_success: bool = DEFAULT_AUTO_MOCK_SUCCESS,
-        dp: Optional[Dispatcher] = None,
+        dp: Dispatcher | None = None,
         **kwargs,
     ):
         self.bot = MockedBot(auto_mock_success=auto_mock_success)
@@ -44,8 +36,7 @@ class RequestHandler:
         available_methods = tuple(set(dispatcher_methods) - set(exclude_observer_methods))
         self._register_middlewares(available_methods, tuple(dp_middlewares))
 
-
-    def _get_dispatcher_event_observers(self) -> List[str]:
+    def _get_dispatcher_event_observers(self) -> list[str]:
         """
         Returns a names for bot event observers, like message, callback_query etc.
         """
@@ -68,13 +59,13 @@ class RequestHandler:
 
     def add_result_for(
         self,
-        method: Type[TelegramMethod[TelegramType]],
+        method: type[TelegramMethod[TelegramType]],
         ok: bool,
         result: TelegramType = None,
-        description: Optional[str] = None,
+        description: str | None = None,
         error_code: int = 200,
-        migrate_to_chat_id: Optional[int] = None,
-        retry_after: Optional[int] = None,
+        migrate_to_chat_id: int | None = None,
+        retry_after: int | None = None,
     ) -> Response[TelegramType]:
         response = self.bot.add_result_for(
             method=method,

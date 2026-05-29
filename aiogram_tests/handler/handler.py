@@ -1,36 +1,33 @@
-from typing import Callable
-from typing import Dict
-from typing import Iterable
-from typing import List
-from typing import Union
+from collections.abc import Callable
+from collections.abc import Iterable
 
 from aiogram import types
 from aiogram.filters import Filter
 from aiogram.filters import StateFilter
-from aiogram.fsm.state import State
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State
 
 from .base import RequestHandler
 
 
 class TelegramEventObserverHandler(RequestHandler):
     def __init__(
-            self,
-            callback: Callable,
-            *filters: Filter,
-            state: Union[State, str, None] = None,
-            state_data: Dict = None,
-            state_context: Union[FSMContext, None] = None,
-            dp_middlewares: Iterable = None,
-            exclude_observer_methods: Iterable = None,
-            **kwargs,
+        self,
+        callback: Callable,
+        *filters: Filter,
+        state: State | str | None = None,
+        state_data: dict = None,
+        state_context: FSMContext | None = None,
+        dp_middlewares: Iterable = None,
+        exclude_observer_methods: Iterable = None,
+        **kwargs,
     ):
         super().__init__(dp_middlewares, exclude_observer_methods, **kwargs)
 
         self._callback = callback
-        self._filters: List = list(filters)
-        self._state: Union[State, str, None] = state
-        self._state_data: Dict = state_data
+        self._filters: list = list(filters)
+        self._state: State | str | None = state
+        self._state_data: dict = state_data
         self._state_context: FSMContext = state_context
 
         if self._state_context:
@@ -87,4 +84,3 @@ class CallbackQueryHandler(TelegramEventObserverHandler):
 
     async def feed_update(self, callback_query: types.CallbackQuery, *args, **kwargs) -> None:
         await self.dp.feed_update(self.bot, types.Update(update_id=12345678, callback_query=callback_query))
-

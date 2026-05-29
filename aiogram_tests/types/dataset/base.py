@@ -1,6 +1,5 @@
 from collections.abc import Mapping
 from typing import Any
-from typing import Union
 
 
 class DatasetItem(Mapping):
@@ -21,7 +20,7 @@ class DatasetItem(Mapping):
     def model(self) -> Any:
         return self._model
 
-    def as_object(self, **replace_args) -> Union[Any, None]:
+    def as_object(self, **replace_args) -> Any | None:
         """
         Return an object from dict
 

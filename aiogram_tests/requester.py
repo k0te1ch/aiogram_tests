@@ -1,6 +1,3 @@
-from typing import Optional
-from typing import Type
-
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
@@ -38,8 +35,8 @@ class Calls:
             return getattr(self, item)
         else:
             raise MethodIsNotCalledError(
-                "method '%s' is not called by bot, so you cant to get this attribute. Called methods: %s"
-                % (item, self._get_attributes())
+                f"method '{item}' is not called by bot, so you cant to get this attribute. "
+                f"Called methods: {self._get_attributes()}"
             )
 
 
@@ -51,7 +48,7 @@ class MockedRequester:
         try:
             await self._handler(*args, **kwargs)
         except TypeError as e:
-            raise AttributeError("incorrect argument name. %s" % e)
+            raise AttributeError(f"incorrect argument name. {e}")
 
         requests = self._handler.bot.session.requests
         result = {}
@@ -67,13 +64,13 @@ class MockedRequester:
 
     def add_result_for(
         self,
-        method: Type[TelegramMethod[TelegramType]],
+        method: type[TelegramMethod[TelegramType]],
         ok: bool,
         result: TelegramType = None,
-        description: Optional[str] = None,
+        description: str | None = None,
         error_code: int = 200,
-        migrate_to_chat_id: Optional[int] = None,
-        retry_after: Optional[int] = None,
+        migrate_to_chat_id: int | None = None,
+        retry_after: int | None = None,
     ) -> Response[TelegramType]:
         response = self._handler.add_result_for(
             method=method,

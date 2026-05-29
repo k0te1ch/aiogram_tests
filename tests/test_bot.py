@@ -3,6 +3,14 @@ from aiogram.filters import Command
 from aiogram.methods import AnswerCallbackQuery
 from aiogram.methods import SendMessage
 
+from aiogram_tests.handler import CallbackQueryHandler
+from aiogram_tests.handler import MessageHandler
+from aiogram_tests.requester import MockedRequester
+from aiogram_tests.types.dataset import CALLBACK_QUERY
+from aiogram_tests.types.dataset import MESSAGE
+
+from .bot import States
+from .bot import TestCallbackData
 from .bot import callback_query_handler
 from .bot import callback_query_handler_with_state
 from .bot import command_handler
@@ -11,13 +19,6 @@ from .bot import foo_command_handler
 from .bot import message_handler
 from .bot import message_handler_with_state
 from .bot import message_handler_with_state_data
-from .bot import States
-from .bot import TestCallbackData
-from aiogram_tests.requester import MockedRequester
-from aiogram_tests.handler import CallbackQueryHandler
-from aiogram_tests.handler import MessageHandler
-from aiogram_tests.types.dataset import CALLBACK_QUERY
-from aiogram_tests.types.dataset import MESSAGE
 
 
 @pytest.mark.asyncio

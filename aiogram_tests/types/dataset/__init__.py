@@ -302,7 +302,8 @@ MESSAGE = DatasetItem(
 )
 
 CALLBACK_QUERY = DatasetItem(
-    {"id": "12345678", "chat_instance": "AABBCC", "from_user": USER, "message": MESSAGE, "data": "data"}, model=types.CallbackQuery
+    {"id": "12345678", "chat_instance": "AABBCC", "from_user": USER, "message": MESSAGE, "data": "data"},
+    model=types.CallbackQuery,
 )
 
 CHANNEL = DatasetItem(

@@ -1,13 +1,13 @@
 import pytest
 from aiogram.filters import Command
+from test_bot import States
+from test_bot import TestCallbackData
 from test_bot import callback_query_handler
 from test_bot import callback_query_handler_with_state
 from test_bot import command_handler
 from test_bot import message_handler
 from test_bot import message_handler_with_state
 from test_bot import message_handler_with_state_data
-from test_bot import States
-from test_bot import TestCallbackData
 
 from aiogram_tests import MockedRequester
 from aiogram_tests.handler import CallbackQueryHandler

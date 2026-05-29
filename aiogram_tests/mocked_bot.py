@@ -1,9 +1,5 @@
 from collections import deque
-from typing import AsyncGenerator
-from typing import Deque
-from typing import Optional
-from typing import Type
-from typing import Union
+from collections.abc import AsyncGenerator
 
 from aiogram import Bot
 from aiogram.client.session.base import BaseSession
@@ -12,9 +8,8 @@ from aiogram.methods.base import Request
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
 from aiogram.types import ResponseParameters
-from aiogram.types.base import UNSET_TYPE
 from aiogram.types import User
-
+from aiogram.types.base import UNSET_TYPE
 
 DEFAULT_AUTO_MOCK_SUCCESS = True
 
@@ -22,15 +17,15 @@ DEFAULT_AUTO_MOCK_SUCCESS = True
 class MockedSession(BaseSession):
     def __init__(self):
         super().__init__()
-        self.responses: Deque[Response[TelegramType]] = deque()
-        self.requests: Deque[Request] = deque()
+        self.responses: deque[Response[TelegramType]] = deque()
+        self.requests: deque[Request] = deque()
         self.closed = True
 
     def add_result(self, response: Response[TelegramType]) -> Response[TelegramType]:
         self.responses.appendleft(response)
         return response
 
-    def get_request(self) -> Union[Request, None]:
+    def get_request(self) -> Request | None:
         if self.requests:
             return self.requests[-1]
 
@@ -43,10 +38,10 @@ class MockedSession(BaseSession):
         self,
         bot: Bot,
         method: TelegramMethod[TelegramType],
-        timeout: Optional[int] = UNSET_TYPE,
+        timeout: int | None = UNSET_TYPE,
     ) -> TelegramType:
         self.closed = False
-        request = Request(method=method.__api_method__, data=method.__dict__, files = None)
+        request = Request(method=method.__api_method__, data=method.__dict__, files=None)
         self.requests.append(request)
         response: Response[TelegramType] = self.responses.pop()
         self.check_response(
@@ -65,9 +60,7 @@ class MockedSession(BaseSession):
 
 class MockedBot(Bot):
     def __init__(self, auto_mock_success: bool = DEFAULT_AUTO_MOCK_SUCCESS, **kwargs):
-        super().__init__(
-            kwargs.pop("token", "42:TEST"), session=MockedSession(), **kwargs
-        )
+        super().__init__(kwargs.pop("token", "42:TEST"), session=MockedSession(), **kwargs)
         self.session = MockedSession()
         self._me = User(
             id=self.id,
@@ -81,13 +74,13 @@ class MockedBot(Bot):
 
     def add_result_for(
         self,
-        method: Type[TelegramMethod[TelegramType]],
+        method: type[TelegramMethod[TelegramType]],
         ok: bool,
         result: TelegramType = None,
-        description: Optional[str] = None,
+        description: str | None = None,
         error_code: int = 200,
-        migrate_to_chat_id: Optional[int] = None,
-        retry_after: Optional[int] = None,
+        migrate_to_chat_id: int | None = None,
+        retry_after: int | None = None,
     ) -> Response[TelegramType]:
         response = Response[method.__returning__](  # type: ignore
             ok=ok,
@@ -102,9 +95,7 @@ class MockedBot(Bot):
         self.session.add_result(response)
         return response
 
-    async def __call__(
-        self, method: TelegramMethod, request_timeout: Optional[int] = None
-    ):
+    async def __call__(self, method: TelegramMethod, request_timeout: int | None = None):
         if self.auto_mock_success:
             self.add_result_for(method.__class__, ok=True)
         return await super().__call__(method, request_timeout)

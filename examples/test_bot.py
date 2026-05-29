@@ -39,7 +39,7 @@ async def message_handler_with_state(message: types.Message, state: FSMContext) 
 @dp.message(States.state_1)
 async def message_handler_with_state_data(message: types.Message, state: FSMContext) -> None:
     data = await state.get_data()
-    await message.answer(f'Info from state data: {data["info"]}')
+    await message.answer(f"Info from state data: {data['info']}")
 
 
 @dp.callback_query(TestCallbackData.filter())
