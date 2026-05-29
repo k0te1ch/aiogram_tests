@@ -2,6 +2,18 @@
 
 ***aiogram_tests*** is a testing library for bots written on [aiogram]("https://github.com/aiogram/aiogram")</a>
 
+## 📦 Installation
+
+```bash
+pip install aiogram-testing
+```
+
+The import name stays `aiogram_tests`:
+
+```python
+from aiogram_tests import MockedRequester
+```
+
 ## 📚 Simple examples
 
 ### Simple handler test
