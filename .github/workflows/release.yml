@@ -4,8 +4,6 @@ on:
   push:
     tags:
       - "v*"
-  release:
-    types: [published]
 
 jobs:
   build:
@@ -37,3 +35,73 @@ jobs:
           path: dist/
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  changelog:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the GitHub Release and push CHANGELOG.md
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release notes (this tag)
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: RELEASE_NOTES.md
+
+      - name: Generate changelog section (this tag, body only)
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --latest --strip all
+        env:
+          OUTPUT: NEW_SECTION.md
+
+      - name: Insert new section into CHANGELOG.md
+        run: |
+          python - <<'PY'
+          import pathlib
+
+          marker = "<!-- BEGIN RELEASES -->"
+          changelog = pathlib.Path("CHANGELOG.md")
+          section = pathlib.Path("NEW_SECTION.md").read_text(encoding="utf-8").strip()
+          text = changelog.read_text(encoding="utf-8")
+
+          heading = section.splitlines()[0] if section else ""
+          if not section or (heading and heading in text):
+              print("Nothing to insert (empty or already present).")
+          else:
+              head, _, rest = text.partition(marker)
+              changelog.write_text(
+                  f"{head}{marker}\n\n{section}\n\n{rest.lstrip(chr(10))}",
+                  encoding="utf-8",
+              )
+              print("Inserted new changelog section.")
+          PY
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+      - name: Commit updated CHANGELOG.md back to master
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout master
+          git pull --ff-only origin master
+          rm -f RELEASE_NOTES.md NEW_SECTION.md
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "CHANGELOG.md already up to date."
+          else
+            git commit -m "docs(changelog): update for ${GITHUB_REF_NAME} [skip ci]"
+            git push origin master
+          fi

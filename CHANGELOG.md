@@ -1,16 +1,15 @@
 # Changelog
 
-All notable changes to this project are documented in this file.
+All notable changes to this project will be documented in this file.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Versioning policy
+`aiogram_tests` uses independent SemVer and is released alongside aiogram:
+each release declares the supported aiogram range via its dependency constraint.
 
-`aiogram_tests` follows [Semantic Versioning](https://semver.org/) with its own
-independent version numbers. Because the library is tightly coupled to aiogram
-internals, a new release is cut **alongside aiogram releases**: each release
-declares the supported aiogram range via its dependency constraint, and the
-supported aiogram version is recorded in the entry below.
+<!-- BEGIN RELEASES -->
 
-## [1.1.0]
+## [1.1.0] - 2026-05-29
 
 **Supported aiogram:** `>=3.28,<4`
 
