@@ -1,3 +1,5 @@
+import inspect
+
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
@@ -45,14 +47,14 @@ class MockedRequester:
         self._handler: RequestHandler = request_handler
 
     async def query(self, *args, **kwargs) -> Calls:
-        try:
-            await self._handler(*args, **kwargs)
-        except TypeError as e:
-            raise AttributeError(f"incorrect argument name. {e}")
+        self._check_arguments(*args, **kwargs)
 
         requests = self._handler.bot.session.requests
+        already_made = len(requests)
+        await self._handler(*args, **kwargs)
+
         result = {}
-        for r in requests:
+        for r in list(requests)[already_made:]:
             method_name = camel_case2snake_case(r.method)
 
             if method_name not in result:
@@ -82,6 +84,15 @@ class MockedRequester:
             retry_after=retry_after,
         )
         return response
+
+    def _check_arguments(self, *args, **kwargs) -> None:
+        build_update = getattr(self._handler, "build_update", None)
+        if build_update is None:
+            return
+        try:
+            inspect.signature(build_update).bind(*args, **kwargs)
+        except TypeError as e:
+            raise AttributeError(f"incorrect argument name. {e}") from e
 
     @staticmethod
     def _dict_to_obj(data: dict):
