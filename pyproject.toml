@@ -18,8 +18,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.15"
-# Follows aiogram releases; bump alongside new aiogram versions.
-aiogram = "^3.28"
+# Lowest and latest aiogram are both tested in CI.
+aiogram = ">=3.23,<4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.3"

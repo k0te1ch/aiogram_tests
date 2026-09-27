@@ -1,3 +1,4 @@
+import pytest
 from aiogram import types
 
 import aiogram_tests.types.dataset as dataset
@@ -85,3 +86,12 @@ def test_override_by_field_name_wins_over_alias():
     message = dataset.MESSAGE.as_object(from_user=dataset.USER.as_object(id=42))
 
     assert message.from_user.id == 42
+
+
+@pytest.mark.parametrize(
+    "name",
+    [name for name, item in vars(dataset).items() if isinstance(item, DatasetItem) and item.model is not None],
+)
+def test_dataset_item_builds_with_current_aiogram(name):
+    # as_object() returns None when the model rejects the data, so a Bot API change shows up here
+    assert getattr(dataset, name).as_object() is not None

@@ -26,11 +26,14 @@ jobs:
         run: poetry run ruff format --check .
 
   test:
+    name: test (py${{ matrix.python-version }}, aiogram ${{ matrix.aiogram }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']
+        python-version: ['3.12', '3.13', '3.14']
+        # Lowest supported release and whatever is newest on PyPI
+        aiogram: ['3.23.0', 'latest']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -40,5 +43,15 @@ jobs:
         run: pipx install poetry
       - name: Install dependencies
         run: poetry install --no-interaction
+      - name: Install aiogram ${{ matrix.aiogram }}
+        env:
+          AIOGRAM: ${{ matrix.aiogram }}
+        run: |
+          if [ "$AIOGRAM" = latest ]; then
+            poetry run pip install --upgrade aiogram
+          else
+            poetry run pip install "aiogram==$AIOGRAM"
+          fi
+          poetry run python -c "import aiogram; print('aiogram', aiogram.__version__)"
       - name: Run test suite
         run: poetry run pytest -v

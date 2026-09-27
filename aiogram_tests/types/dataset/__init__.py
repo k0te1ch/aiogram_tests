@@ -127,7 +127,8 @@ ENTITY_BOLD = DatasetItem(
         "offset": 5,
         "length": 2,
         "type": "bold",
-    }
+    },
+    model=types.MessageEntity,
 )
 
 ENTITY_ITALIC = DatasetItem(
@@ -135,7 +136,8 @@ ENTITY_ITALIC = DatasetItem(
         "offset": 8,
         "length": 1,
         "type": "italic",
-    }
+    },
+    model=types.MessageEntity,
 )
 
 ENTITY_LINK = DatasetItem(
@@ -144,7 +146,8 @@ ENTITY_LINK = DatasetItem(
         "length": 6,
         "type": "text_link",
         "url": "https://google.com/",
-    }
+    },
+    model=types.MessageEntity,
 )
 
 ENTITY_CODE = DatasetItem(
@@ -152,7 +155,8 @@ ENTITY_CODE = DatasetItem(
         "offset": 17,
         "length": 7,
         "type": "code",
-    }
+    },
+    model=types.MessageEntity,
 )
 
 ENTITY_PRE = DatasetItem(
@@ -160,7 +164,8 @@ ENTITY_PRE = DatasetItem(
         "offset": 30,
         "length": 4,
         "type": "pre",
-    }
+    },
+    model=types.MessageEntity,
 )
 
 ENTITY_MENTION = DatasetItem(
@@ -168,7 +173,8 @@ ENTITY_MENTION = DatasetItem(
         "offset": 47,
         "length": 9,
         "type": "mention",
-    }
+    },
+    model=types.MessageEntity,
 )
 
 GAME = DatasetItem(
