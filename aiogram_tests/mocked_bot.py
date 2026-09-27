@@ -1,5 +1,10 @@
+import itertools
+import typing
 from collections import deque
 from collections.abc import AsyncGenerator
+from datetime import UTC
+from datetime import datetime
+from typing import Any
 
 from aiogram import Bot
 from aiogram.client.session.base import BaseSession
@@ -7,10 +12,13 @@ from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Request
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
+from aiogram.types import Chat
+from aiogram.types import Message
 from aiogram.types import ResponseParameters
 from aiogram.types import User
 from aiogram.types.base import UNSET_TYPE
 
+from .calls import Calls
 from .exceptions import MockedResponseMissingError
 
 DEFAULT_AUTO_MOCK_SUCCESS = True
@@ -47,6 +55,9 @@ class MockedSession(BaseSession):
         request = Request(method=method.__api_method__, data=method.__dict__, files=None)
         self.requests.append(request)
         self.methods.append(method)
+        if not self.responses and getattr(bot, "auto_mock_success", False):
+            # Answer at request time, so a failure queued earlier is never followed by a stale success
+            bot.add_result_for(type(method), ok=True, result=bot.default_result(method))
         if not self.responses:
             raise MockedResponseMissingError(
                 f"no mocked response for {method.__api_method__}: call "
@@ -79,6 +90,7 @@ class MockedBot(Bot):
             language_code="ru",
         )
         self.auto_mock_success = auto_mock_success
+        self._message_ids = itertools.count(1)
 
     def add_result_for(
         self,
@@ -103,10 +115,39 @@ class MockedBot(Bot):
         self.session.add_result(response)
         return response
 
-    async def __call__(self, method: TelegramMethod, request_timeout: int | None = None):
-        if self.auto_mock_success:
-            self.add_result_for(method.__class__, ok=True)
-        return await super().__call__(method, request_timeout)
+    @property
+    def calls(self) -> Calls:
+        """
+        Every Bot API call this bot made, including ones outside the dispatcher (background jobs, notifiers)
+        """
+
+        return Calls(self.session.methods)
+
+    def default_result(self, method: TelegramMethod) -> Any:
+        """
+        What Telegram would plausibly answer to ``method`` when no result was queued: the sent or edited message
+        for message methods, ``True`` for boolean ones, the bot itself for ``getMe``
+        """
+
+        returning = method.__returning__
+        options = typing.get_args(returning) or (returning,)
+        if User in options:
+            return self._me
+        if Message in options and getattr(method, "inline_message_id", None) is None:
+            chat_id = getattr(method, "chat_id", None)
+            return Message(
+                message_id=getattr(method, "message_id", None) or next(self._message_ids),
+                date=datetime.now(UTC),
+                chat=Chat(id=chat_id if isinstance(chat_id, int) else -1, type="private"),
+                from_user=self._me,
+                text=getattr(method, "text", None),
+                caption=getattr(method, "caption", None),
+            )
+        if bool in options:
+            return True
+        if typing.get_origin(returning) is list:
+            return []
+        return None
 
     def get_request(self) -> Request:
         return self.session.get_request()
