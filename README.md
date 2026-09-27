@@ -81,6 +81,39 @@ calls.assert_not_called(AnswerCallbackQuery)
 Accessing a method that was not called (`calls.edit_message_text`) raises `MethodIsNotCalledError`, an
 `AttributeError`, so `hasattr(calls, "edit_message_text")` works.
 
+### Testing a whole router: `BotTester`
+
+`MockedRequester` checks one handler function. `BotTester` runs updates through your real router or dispatcher, with
+its filters, middlewares, FSM and injected dependencies, just like production:
+
+```python
+from aiogram.methods import SendMessage
+
+from mybot.handlers import router
+
+
+async def test_survey(bot_tester):  # fixture from the bundled pytest plugin
+    tester = bot_tester(router, db=fake_db)   # keyword arguments reach handlers like dp.start_polling(**kwargs)
+
+    calls = await tester.send_message("/survey")
+    calls.assert_called(SendMessage, text="What is your name?")
+
+    await tester.send_message("Alice")        # FSM state carries over between steps
+    calls = await tester.press("Python")      # presses a button from the last inline keyboard
+
+    calls.assert_called(SendMessage, text="Nice to meet you, Alice!")
+    assert await tester.get_state() is None
+```
+
+- `send_message(text, user=..., chat=...)`, `click(data_or_callback_data, message=..., user=...)`, `press(button_text)`
+  and `feed(event_or_update, event_type=...)` return the calls made while handling that update.
+- `get_state(user)`, `set_state(state, user=..., **data)` and `state(user)` give access to the FSM.
+- A module-level router is detached from the previous test's dispatcher, so each test gets a fresh one.
+- A `Dispatcher` is used as is; its `workflow_data` and middlewares stay in place.
+
+The plugin is registered automatically on install and provides the `bot_tester` (factory), `mocked_bot` and
+`dataset` fixtures. See [examples/test_survey.py](examples/test_survey.py).
+
 ### Other update types
 
 Each update type has its handler; pass the event positionally or by its update field name:
