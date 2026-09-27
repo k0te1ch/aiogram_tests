@@ -1,15 +1,42 @@
 name: Release
 
+# release-please keeps a release PR up to date on every push to main.
+# Merging that PR tags the version and creates the GitHub Release; the
+# publish job then uploads to PyPI in the same run. It lives in this file
+# (not a separate workflow) because the PyPI trusted publisher is bound to
+# release.yml, and a tag pushed with GITHUB_TOKEN would not trigger another
+# workflow anyway.
+
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
   build:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -35,73 +62,3 @@ jobs:
           path: dist/
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
-  changelog:
-    needs: publish
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # create the GitHub Release and push CHANGELOG.md
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Generate release notes (this tag)
-        uses: orhun/git-cliff-action@v4
-        with:
-          config: cliff.toml
-          args: --latest --strip header
-        env:
-          OUTPUT: RELEASE_NOTES.md
-
-      - name: Generate changelog section (this tag, body only)
-        uses: orhun/git-cliff-action@v4
-        with:
-          config: cliff.toml
-          args: --latest --strip all
-        env:
-          OUTPUT: NEW_SECTION.md
-
-      - name: Insert new section into CHANGELOG.md
-        run: |
-          python - <<'PY'
-          import pathlib
-
-          marker = "<!-- BEGIN RELEASES -->"
-          changelog = pathlib.Path("CHANGELOG.md")
-          section = pathlib.Path("NEW_SECTION.md").read_text(encoding="utf-8").strip()
-          text = changelog.read_text(encoding="utf-8")
-
-          heading = section.splitlines()[0] if section else ""
-          if not section or (heading and heading in text):
-              print("Nothing to insert (empty or already present).")
-          else:
-              head, _, rest = text.partition(marker)
-              changelog.write_text(
-                  f"{head}{marker}\n\n{section}\n\n{rest.lstrip(chr(10))}",
-                  encoding="utf-8",
-              )
-              print("Inserted new changelog section.")
-          PY
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          body_path: RELEASE_NOTES.md
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
-
-      - name: Commit updated CHANGELOG.md back to master
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout master
-          git pull --ff-only origin master
-          rm -f RELEASE_NOTES.md NEW_SECTION.md
-          git add CHANGELOG.md
-          if git diff --cached --quiet; then
-            echo "CHANGELOG.md already up to date."
-          else
-            git commit -m "docs(changelog): update for ${GITHUB_REF_NAME} [skip ci]"
-            git push origin master
-          fi
