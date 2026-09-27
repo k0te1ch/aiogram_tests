@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `aiogram_tests` uses independent SemVer and is released alongside aiogram:
 each release declares the supported aiogram range via its dependency constraint.
 
+## [1.2.1](https://github.com/k0te1ch/aiogram_tests/compare/v1.2.0...v1.2.1) (2026-09-27)
+
+
+### Bug Fixes
+
+* **deps:** drop the upper bound on python ([#10](https://github.com/k0te1ch/aiogram_tests/issues/10)) ([f21549b](https://github.com/k0te1ch/aiogram_tests/commit/f21549b82d940250ce280b514fb1c17d4eee3610))
+* ship a py.typed marker ([#13](https://github.com/k0te1ch/aiogram_tests/issues/13)) ([d7e707f](https://github.com/k0te1ch/aiogram_tests/commit/d7e707fdeae232adfa8ba9597cd697051870bd0c))
+
+
+### Reverts
+
+* fix(deps): drop the upper bound on python ([#12](https://github.com/k0te1ch/aiogram_tests/issues/12)) ([ccffa45](https://github.com/k0te1ch/aiogram_tests/commit/ccffa4594ca469000faa32a929f84de14cd3b0a7))
+
 ## [1.2.0](https://github.com/k0te1ch/aiogram_tests/compare/v1.1.0...v1.2.0) (2026-09-27)
 
 
