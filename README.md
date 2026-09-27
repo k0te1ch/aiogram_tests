@@ -96,6 +96,9 @@ bot.add_result_for(SendMessage, ok=False, error_code=400, description="Bad Reque
 bot.add_result_for(SendMessage, ok=False, error_code=429, description="Too Many Requests", retry_after=3)
 ```
 
+aiogram raises `TelegramRetryAfter` only for a non-zero `retry_after`; with `0` the failure is a plain
+`TelegramAPIError`. Patch `asyncio.sleep` in the code under test if a retry should not actually wait.
+
 Code that talks to the bot outside the dispatcher (background jobs, notifiers) can use a `MockedBot` directly;
 `bot.calls` holds every call it made.
 
