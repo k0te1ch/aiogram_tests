@@ -4,6 +4,7 @@ from aiogram.filters import StateFilter
 from aiogram_tests.handler import MessageHandler
 from aiogram_tests.handler import RequestHandler
 from aiogram_tests.handler import TelegramEventObserverHandler
+from aiogram_tests.types.dataset import MESSAGE
 
 from .middleware import TestMiddleware
 
@@ -40,12 +41,12 @@ async def test_telegram_observ_handler():
         pass
 
     t_h = MessageHandler(callback)
-    await t_h(None)
+    await t_h(MESSAGE.as_object())
     handlers_count = len(t_h.dp.message.handlers)
     assert handlers_count == 1
 
     t_h = MessageHandler(callback, StateFilter(None))
-    await t_h(None)
+    await t_h(MESSAGE.as_object())
     handlers_count = len(t_h.dp.message.handlers)
     assert handlers_count == 1
 
@@ -56,7 +57,7 @@ async def test_state_telegram_observ_handler():
         pass
 
     t_h = MessageHandler(callback, state="state", state_data={"name": "Mike"})
-    await t_h(None)
+    await t_h(MESSAGE.as_object())
 
     context = t_h.dp.fsm.get_context(t_h.bot, 12345678, 12345678)
     state = await context.get_state()
