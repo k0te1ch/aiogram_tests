@@ -11,6 +11,8 @@ from aiogram.types import ResponseParameters
 from aiogram.types import User
 from aiogram.types.base import UNSET_TYPE
 
+from .exceptions import MockedResponseMissingError
+
 DEFAULT_AUTO_MOCK_SUCCESS = True
 
 
@@ -43,6 +45,11 @@ class MockedSession(BaseSession):
         self.closed = False
         request = Request(method=method.__api_method__, data=method.__dict__, files=None)
         self.requests.append(request)
+        if not self.responses:
+            raise MockedResponseMissingError(
+                f"no mocked response for {method.__api_method__}: call "
+                f"add_result_for({type(method).__name__}, ...) first or enable auto_mock_success"
+            )
         response: Response[TelegramType] = self.responses.pop()
         self.check_response(
             method=method,
@@ -61,7 +68,6 @@ class MockedSession(BaseSession):
 class MockedBot(Bot):
     def __init__(self, auto_mock_success: bool = DEFAULT_AUTO_MOCK_SUCCESS, **kwargs):
         super().__init__(kwargs.pop("token", "42:TEST"), session=MockedSession(), **kwargs)
-        self.session = MockedSession()
         self._me = User(
             id=self.id,
             is_bot=True,
