@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `aiogram_tests` uses independent SemVer and is released alongside aiogram:
 each release declares the supported aiogram range via its dependency constraint.
 
+## [1.3.0](https://github.com/k0te1ch/aiogram_tests/compare/v1.2.1...v1.3.0) (2026-09-27)
+
+
+### Features
+
+* realistic Bot API answers, calls.result and MockedBot.calls ([#15](https://github.com/k0te1ch/aiogram_tests/issues/15)) ([9800289](https://github.com/k0te1ch/aiogram_tests/commit/98002897f6c4d95d2e837ecccc9bbc441e704e46))
+
 ## [1.2.1](https://github.com/k0te1ch/aiogram_tests/compare/v1.2.0...v1.2.1) (2026-09-27)
 
 
