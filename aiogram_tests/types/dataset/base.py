@@ -20,22 +20,18 @@ class DatasetItem(Mapping):
     def model(self) -> Any:
         return self._model
 
-    def as_object(self, **replace_args) -> Any | None:
+    def as_object(self, **replace_args) -> Any:
         """
-        Return an object from dict
+        Build the model from the data; without a model return the data dict
 
-        :return: Any | None
+        :return: Any
         """
-        try:
-            data = self._data.copy()
-            data.update(**replace_args)
-            self._drop_shadowing_aliases(data, replace_args)
-            if self._model and isinstance(self._data, dict):
-                return self._recursive_as_object(data, self._model)
-            else:
-                return data
-        except (AttributeError, TypeError):
-            return None
+        data = self._data.copy()
+        data.update(**replace_args)
+        self._drop_shadowing_aliases(data, replace_args)
+        if self._model and isinstance(self._data, dict):
+            return self._recursive_as_object(data, self._model)
+        return data
 
     def _drop_shadowing_aliases(self, data: dict, replace_args: dict) -> None:
         """
@@ -48,27 +44,27 @@ class DatasetItem(Mapping):
             if field is not None and field.alias and field.alias != key:
                 data.pop(field.alias, None)
 
-    def _recursive_as_object(self, data: dict, model: Any):
+    @classmethod
+    def _recursive_as_object(cls, data: dict, model: Any):
         """
-        This method is converting dict data to object, if one of the params is the DatasetItem method will be
-        recursive convert it;
+        Build the model from data, converting nested dataset items and lists of them first
 
         :param data: the dict that should be as object
         :param model: the object that will be returned
         :return:
         """
-        result_data = data.copy()
-        for key, value in data.items():
-            if isinstance(value, DatasetItem):
-                result_data[key] = self._recursive_as_object(value.data, value.model)
-            elif isinstance(value, list):
-                for index, item in enumerate(value):
-                    if not isinstance(item, (DatasetItem, list)):
-                        continue
+        converted = {key: cls._convert(value) for key, value in data.items()}
+        return model(**converted)
 
-                    result_data[key][index] = self._recursive_as_object(item.data, item.model)
-
-        return model(**result_data)
+    @classmethod
+    def _convert(cls, value: Any) -> Any:
+        if isinstance(value, DatasetItem):
+            if value.model is None:
+                return {key: cls._convert(item) for key, item in value.data.items()}
+            return cls._recursive_as_object(value.data, value.model)
+        if isinstance(value, list):
+            return [cls._convert(item) for item in value]
+        return value
 
     def __iter__(self):
         return iter(self._data.keys())
