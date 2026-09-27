@@ -1,4 +1,7 @@
 import inspect
+from collections.abc import Iterator
+from typing import Any
+from typing import TypeVar
 
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response
@@ -8,38 +11,80 @@ from .exceptions import MethodIsNotCalledError
 from .handler.base import RequestHandler
 from .utils import camel_case2snake_case
 
+M = TypeVar("M", bound=TelegramMethod)
 
-class CallsList(list):
-    def fetchone(self):
+
+class CallsList(list[M]):
+    def fetchone(self) -> M | None:
         if len(self) > 0:
             return self[-1]
         else:
             return None
 
-    def fetchall(self):
+    def fetchall(self) -> "CallsList[M]":
         return self
 
 
 class Calls:
-    def _get_attributes(self):
-        res = []
-        for item in dir(self):
-            if item.startswith("_") or item.endswith("_"):
-                continue
+    """
+    Bot API methods called while handling one query, in call order.
 
-            if not callable(getattr(self, item)):
-                res.append(item)
+    ``calls.send_message`` returns the ``SendMessage`` calls; ``calls.get(SendMessage)`` does the same with a type
+    the IDE and type checkers understand.
+    """
 
-        return tuple(res)
+    def __init__(self, methods: list[TelegramMethod] | tuple = ()):
+        self._methods = list(methods)
+        # Same list on every access: tests pop() from calls.send_message
+        self._groups: dict[str, CallsList] = {}
+        for m in self._methods:
+            self._groups.setdefault(camel_case2snake_case(m.__api_method__), CallsList()).append(m)
 
-    def __getattr__(self, item):
-        if item in dir(self):
-            return getattr(self, item)
-        else:
+    def _get_attributes(self) -> tuple[str, ...]:
+        return tuple(self._groups)
+
+    def __getattr__(self, item: str) -> CallsList:
+        if item.startswith("_"):
+            raise AttributeError(item)
+        group = self._groups.get(item)
+        if group is None:
             raise MethodIsNotCalledError(
                 f"method '{item}' is not called by bot, so you cant to get this attribute. "
                 f"Called methods: {self._get_attributes()}"
             )
+        return group
+
+    def __iter__(self) -> Iterator[TelegramMethod]:
+        return iter(self._methods)
+
+    def __len__(self) -> int:
+        return len(self._methods)
+
+    def get(self, method: type[M]) -> CallsList[M]:
+        return CallsList(m for m in self._methods if isinstance(m, method))
+
+    def last(self, method: type[M]) -> M | None:
+        return self.get(method).fetchone()
+
+    def assert_called(self, method: type[M], **fields: Any) -> M:
+        """
+        Return the last call of ``method`` whose fields equal ``fields``, fail with the calls that were made otherwise
+        """
+
+        candidates = self.get(method)
+        for call in reversed(candidates):
+            if all(getattr(call, name, None) == value for name, value in fields.items()):
+                return call
+
+        expected = ", ".join(f"{name}={value!r}" for name, value in fields.items())
+        made = "\n".join(f"  {call!r}" for call in candidates) or f"  none; called methods: {self._get_attributes()}"
+        raise AssertionError(f"{method.__name__}({expected}) was not called. {method.__name__} calls:\n{made}")
+
+    def assert_not_called(self, method: type[TelegramMethod]) -> None:
+        calls = self.get(method)
+        if calls:
+            made = "\n".join(f"  {call!r}" for call in calls)
+            raise AssertionError(f"{method.__name__} was called {len(calls)} time(s):\n{made}")
 
 
 class MockedRequester:
@@ -49,20 +94,11 @@ class MockedRequester:
     async def query(self, *args, **kwargs) -> Calls:
         self._check_arguments(*args, **kwargs)
 
-        requests = self._handler.bot.session.requests
-        already_made = len(requests)
+        methods = self._handler.bot.session.methods
+        already_made = len(methods)
         await self._handler(*args, **kwargs)
 
-        result = {}
-        for r in list(requests)[already_made:]:
-            method_name = camel_case2snake_case(r.method)
-
-            if method_name not in result:
-                result[method_name] = CallsList()
-
-            result[method_name].append(self._dict_to_obj(r.data))
-
-        return self._generate_result_obj(result)
+        return Calls(list(methods)[already_made:])
 
     def add_result_for(
         self,
@@ -93,13 +129,3 @@ class MockedRequester:
             inspect.signature(build_update).bind(*args, **kwargs)
         except TypeError as e:
             raise AttributeError(f"incorrect argument name. {e}") from e
-
-    @staticmethod
-    def _dict_to_obj(data: dict):
-        GeneratedResponse = type("GeneratedResponse", (), data)
-        return GeneratedResponse()
-
-    @staticmethod
-    def _generate_result_obj(data: dict):
-        GeneratedCalls = type("GeneratedCalls", (Calls,), data)
-        return GeneratedCalls()

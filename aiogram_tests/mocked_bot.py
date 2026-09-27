@@ -21,6 +21,7 @@ class MockedSession(BaseSession):
         super().__init__()
         self.responses: deque[Response[TelegramType]] = deque()
         self.requests: deque[Request] = deque()
+        self.methods: deque[TelegramMethod] = deque()
         self.closed = True
 
     def add_result(self, response: Response[TelegramType]) -> Response[TelegramType]:
@@ -45,6 +46,7 @@ class MockedSession(BaseSession):
         self.closed = False
         request = Request(method=method.__api_method__, data=method.__dict__, files=None)
         self.requests.append(request)
+        self.methods.append(method)
         if not self.responses:
             raise MockedResponseMissingError(
                 f"no mocked response for {method.__api_method__}: call "

@@ -1,6 +1,6 @@
 # Aiogram Tests
 
-***aiogram_tests*** is a testing library for bots written on [aiogram]("https://github.com/aiogram/aiogram")</a>
+***aiogram_tests*** is a testing library for bots written on [aiogram](https://github.com/aiogram/aiogram)
 
 ## 📦 Installation
 
@@ -60,5 +60,25 @@ async def test_echo():
     assert answer_message.text == "Hello, Bot!"
 
 ```
+
+### Checking calls
+
+`query()` returns the Bot API methods the handler called, as aiogram objects (`SendMessage`, `EditMessageText`, ...),
+so fields such as `reply_markup` are typed models, not raw dicts.
+
+```python
+from aiogram.methods import AnswerCallbackQuery, SendMessage
+
+calls = await request.query(message=MESSAGE.as_object(text="Hello, Bot!"))
+
+calls.send_message.fetchone()            # last SendMessage, by snake_case name
+calls.get(SendMessage)                   # all SendMessage calls, typed
+calls.last(SendMessage)                  # last one or None
+calls.assert_called(SendMessage, text="Hello, Bot!")   # fails with the calls that were made
+calls.assert_not_called(AnswerCallbackQuery)
+```
+
+Accessing a method that was not called (`calls.edit_message_text`) raises `MethodIsNotCalledError`, an
+`AttributeError`, so `hasattr(calls, "edit_message_text")` works.
 
 ### [▶️ More](https://github.com/k0te1ch/aiogram_tests/tree/main/examples) examples
