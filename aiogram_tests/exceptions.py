@@ -1,4 +1,4 @@
-class MethodIsNotCalledError(Exception):
+class MethodIsNotCalledError(AttributeError):
     pass
 
 
