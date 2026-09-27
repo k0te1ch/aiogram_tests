@@ -61,4 +61,4 @@ async def test_echo():
 
 ```
 
-### [▶️ More]("https://github.com/aiogram-tests/aiogram_tests/tree/master/examples") examples
+### [▶️ More](https://github.com/k0te1ch/aiogram_tests/tree/main/examples) examples
