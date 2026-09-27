@@ -1,5 +1,7 @@
+import itertools
 from collections.abc import Callable
 from collections.abc import Iterable
+from typing import Any
 
 from aiogram import types
 from aiogram.dispatcher.middlewares.user_context import UserContextMiddleware
@@ -15,6 +17,13 @@ from .base import RequestHandler
 
 
 class TelegramEventObserverHandler(RequestHandler):
+    """
+    Registers ``callback`` on the dispatcher observer ``event`` (``message``, ``inline_query``, ...) and feeds it
+    updates of that type. Subclasses fix ``event``; ``UpdateHandler`` takes it as an argument.
+    """
+
+    event: str | None = None
+
     def __init__(
         self,
         callback: Callable,
@@ -39,6 +48,7 @@ class TelegramEventObserverHandler(RequestHandler):
         self._state_data: dict = state_data
         self._state_context: FSMContext | None = state_context
         self._registered = False
+        self._update_ids = itertools.count(1)
 
         if self._state:
             self._filters.append(StateFilter(self._state))
@@ -77,27 +87,92 @@ class TelegramEventObserverHandler(RequestHandler):
         Register TelegramEventObserver in dispatcher
         """
 
-        raise NotImplementedError
+        getattr(self.dp, self.event).register(self._callback, *self._filters)
 
     def build_update(self, *args, **kwargs) -> types.Update:
         """
-        Wrap the event into an update for the dispatcher
+        Wrap the event, passed positionally or by its update field name, into an update for the dispatcher
         """
 
-        raise NotImplementedError
+        event = self._pick_event(args, kwargs)
+        return types.Update(update_id=next(self._update_ids), **{self.event: event})
+
+    def _pick_event(self, args: tuple, kwargs: dict) -> Any:
+        if args and not kwargs:
+            return args[0]
+        if not args and list(kwargs) == [self.event]:
+            return kwargs[self.event]
+        passed = [*(type(arg).__name__ for arg in args), *kwargs]
+        raise TypeError(f"{type(self).__name__} takes one '{self.event}' event, got {passed}")
+
+
+class UpdateHandler(TelegramEventObserverHandler):
+    """
+    Handler for any update type by its field name: ``UpdateHandler(callback, event="business_message")``
+    """
+
+    def __init__(self, callback: Callable, *filters: Filter, event: str, **kwargs):
+        self.event = event
+        super().__init__(callback, *filters, **kwargs)
+        if event not in self.dp.observers or event in ("update", "error"):
+            raise ValueError(f"dispatcher has no '{event}' updates")
 
 
 class MessageHandler(TelegramEventObserverHandler):
-    def register_handler(self) -> None:
-        self.dp.message.register(self._callback, *self._filters)
+    event = "message"
 
-    def build_update(self, message: types.Message, *args, **kwargs) -> types.Update:
-        return types.Update(update_id=12345678, message=message)
+
+class EditedMessageHandler(TelegramEventObserverHandler):
+    event = "edited_message"
+
+
+class ChannelPostHandler(TelegramEventObserverHandler):
+    event = "channel_post"
+
+
+class EditedChannelPostHandler(TelegramEventObserverHandler):
+    event = "edited_channel_post"
 
 
 class CallbackQueryHandler(TelegramEventObserverHandler):
-    def register_handler(self) -> None:
-        self.dp.callback_query.register(self._callback, *self._filters)
+    event = "callback_query"
 
-    def build_update(self, callback_query: types.CallbackQuery, *args, **kwargs) -> types.Update:
-        return types.Update(update_id=12345678, callback_query=callback_query)
+
+class InlineQueryHandler(TelegramEventObserverHandler):
+    event = "inline_query"
+
+
+class ChosenInlineResultHandler(TelegramEventObserverHandler):
+    event = "chosen_inline_result"
+
+
+class ShippingQueryHandler(TelegramEventObserverHandler):
+    event = "shipping_query"
+
+
+class PreCheckoutQueryHandler(TelegramEventObserverHandler):
+    event = "pre_checkout_query"
+
+
+class PollHandler(TelegramEventObserverHandler):
+    event = "poll"
+
+
+class PollAnswerHandler(TelegramEventObserverHandler):
+    event = "poll_answer"
+
+
+class MyChatMemberHandler(TelegramEventObserverHandler):
+    event = "my_chat_member"
+
+
+class ChatMemberHandler(TelegramEventObserverHandler):
+    event = "chat_member"
+
+
+class ChatJoinRequestHandler(TelegramEventObserverHandler):
+    event = "chat_join_request"
+
+
+class MessageReactionHandler(TelegramEventObserverHandler):
+    event = "message_reaction"

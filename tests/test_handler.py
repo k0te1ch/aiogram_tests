@@ -65,3 +65,22 @@ async def test_state_telegram_observ_handler():
 
     assert state == "state"
     assert data == {"name": "Mike"}
+
+
+async def test_event_middlewares_skip_update_and_error_observers():
+    seen = []
+
+    class FromUserMiddleware(TestMiddleware):
+        async def __call__(self, handler, event, data):
+            seen.append(event.from_user.id)
+            return await handler(event, data)
+
+    async def callback(*args, **kwargs):
+        pass
+
+    handler = MessageHandler(callback, dp_middlewares=[FromUserMiddleware()])
+    await handler(MESSAGE.as_object())
+
+    assert len(handler.dp.update.middleware) == 0
+    assert len(handler.dp.errors.middleware) == 0
+    assert seen == [MESSAGE.as_object().from_user.id]

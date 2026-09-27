@@ -2,7 +2,6 @@ from collections.abc import Iterable
 
 from aiogram import BaseMiddleware
 from aiogram import Dispatcher
-from aiogram.dispatcher.event.telegram import TelegramEventObserver
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response
@@ -39,14 +38,12 @@ class RequestHandler:
     def _get_dispatcher_event_observers(self) -> list[str]:
         """
         Returns a names for bot event observers, like message, callback_query etc.
+
+        ``update`` and ``error`` are left out: their events are ``Update`` and ``ErrorEvent``, and a middleware
+        written for messages or callbacks breaks on them. Register such middlewares on ``dp`` directly.
         """
 
-        result = []
-        for name in dir(self.dp):
-            if isinstance(getattr(self.dp, name), TelegramEventObserver):
-                result.append(name)
-
-        return result
+        return [name for name in self.dp.observers if name not in ("update", "error")]
 
     def _register_middlewares(self, event_observer: Iterable, middlewares: Iterable) -> None:
         for eo_name in event_observer:
