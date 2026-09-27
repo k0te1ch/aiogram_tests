@@ -65,7 +65,7 @@ class TelegramEventObserverHandler(RequestHandler):
             await state.set_state(self._state)
             await state.update_data(**self._state_data)
 
-        await self.dp.feed_update(self.bot, update)
+        return await self.dp.feed_update(self.bot, update)
 
     def _get_state_context(self, update: types.Update) -> FSMContext:
         """

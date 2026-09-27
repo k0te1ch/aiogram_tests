@@ -12,9 +12,9 @@ from aiogram.methods import TelegramMethod
 from aiogram.methods.base import Response
 from aiogram.methods.base import TelegramType
 
+from .calls import Calls
 from .mocked_bot import DEFAULT_AUTO_MOCK_SUCCESS
 from .mocked_bot import MockedBot
-from .requester import Calls
 from .types.dataset import CALLBACK_QUERY
 from .types.dataset import CHAT
 from .types.dataset import MESSAGE
@@ -81,8 +81,8 @@ class BotTester:
 
         methods = self.bot.session.methods
         already_made = len(methods)
-        await self.dp.feed_update(self.bot, update, **self._workflow_data)
-        self._last_calls = Calls(list(methods)[already_made:])
+        result = await self.dp.feed_update(self.bot, update, **self._workflow_data)
+        self._last_calls = Calls(list(methods)[already_made:], result=result)
         return self._last_calls
 
     async def send_message(

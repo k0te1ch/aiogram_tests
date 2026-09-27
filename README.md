@@ -79,7 +79,28 @@ calls.assert_not_called(AnswerCallbackQuery)
 ```
 
 Accessing a method that was not called (`calls.edit_message_text`) raises `MethodIsNotCalledError`, an
-`AttributeError`, so `hasattr(calls, "edit_message_text")` works.
+`AttributeError`, so `hasattr(calls, "edit_message_text")` works. `calls.result` is what the dispatcher returned for
+the update (a handler's return value, or `UNHANDLED` when nothing matched).
+
+### Bot API answers and failures
+
+With `auto_mock_success` on (the default) the bot answers like Telegram would: `send_message` returns a `Message`
+with a fresh `message_id`, the target chat and the text; edits return the edited message (or `True` for inline
+messages); boolean methods return `True`; `get_me` returns the bot. Queue a specific answer or a failure with
+`add_result_for`; queued answers are used first, in order:
+
+```python
+from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
+
+bot.add_result_for(SendMessage, ok=False, error_code=400, description="Bad Request: chat not found")
+bot.add_result_for(SendMessage, ok=False, error_code=429, description="Too Many Requests", retry_after=3)
+```
+
+aiogram raises `TelegramRetryAfter` only for a non-zero `retry_after`; with `0` the failure is a plain
+`TelegramAPIError`. Patch `asyncio.sleep` in the code under test if a retry should not actually wait.
+
+Code that talks to the bot outside the dispatcher (background jobs, notifiers) can use a `MockedBot` directly;
+`bot.calls` holds every call it made.
 
 ### Testing a whole router: `BotTester`
 
