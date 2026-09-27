@@ -7,8 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 `aiogram_tests` uses independent SemVer and is released alongside aiogram:
 each release declares the supported aiogram range via its dependency constraint.
 
-<!-- BEGIN RELEASES -->
-
 ## [1.1.0] - 2026-05-29
 
 **Supported aiogram:** `>=3.28,<4`
