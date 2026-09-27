@@ -81,4 +81,27 @@ calls.assert_not_called(AnswerCallbackQuery)
 Accessing a method that was not called (`calls.edit_message_text`) raises `MethodIsNotCalledError`, an
 `AttributeError`, so `hasattr(calls, "edit_message_text")` works.
 
+### Other update types
+
+Each update type has its handler; pass the event positionally or by its update field name:
+
+```python
+from aiogram_tests.handler import InlineQueryHandler, PreCheckoutQueryHandler, UpdateHandler
+from aiogram_tests.types.dataset import INLINE_QUERY, PRE_CHECKOUT_QUERY
+
+calls = await MockedRequester(InlineQueryHandler(search)).query(INLINE_QUERY.as_object(query="cats"))
+calls = await MockedRequester(PreCheckoutQueryHandler(approve)).query(pre_checkout_query=PRE_CHECKOUT_QUERY.as_object())
+
+# anything else the dispatcher knows, by name
+calls = await MockedRequester(UpdateHandler(on_business, event="business_message")).query(message)
+```
+
+Available: `MessageHandler`, `EditedMessageHandler`, `ChannelPostHandler`, `EditedChannelPostHandler`,
+`CallbackQueryHandler`, `InlineQueryHandler`, `ChosenInlineResultHandler`, `ShippingQueryHandler`,
+`PreCheckoutQueryHandler`, `PollHandler`, `PollAnswerHandler`, `MyChatMemberHandler`, `ChatMemberHandler`,
+`ChatJoinRequestHandler`, `MessageReactionHandler` and `UpdateHandler`.
+
+Middlewares passed as `dp_middlewares` are registered on every event observer except `update` and `error`, whose
+events are `Update` and `ErrorEvent` rather than messages or callbacks.
+
 ### [▶️ More](https://github.com/k0te1ch/aiogram_tests/tree/main/examples) examples

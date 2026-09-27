@@ -1,4 +1,3 @@
-import inspect
 from collections.abc import Iterator
 from typing import Any
 from typing import TypeVar
@@ -126,6 +125,6 @@ class MockedRequester:
         if build_update is None:
             return
         try:
-            inspect.signature(build_update).bind(*args, **kwargs)
+            build_update(*args, **kwargs)
         except TypeError as e:
             raise AttributeError(f"incorrect argument name. {e}") from e
