@@ -15,6 +15,17 @@ from .entities import ENTITY_ITALIC
 from .entities import ENTITY_LINK
 from .entities import ENTITY_MENTION
 from .entities import ENTITY_PRE
+from .events import CHAT_JOIN_REQUEST
+from .events import CHAT_MEMBER_LEFT
+from .events import CHAT_MEMBER_MEMBER
+from .events import CHAT_MEMBER_UPDATED
+from .events import CHOSEN_INLINE_RESULT
+from .events import INLINE_QUERY
+from .events import MESSAGE_REACTION_UPDATED
+from .events import POLL
+from .events import POLL_ANSWER
+from .events import POLL_OPTION
+from .events import REACTION_TYPE_EMOJI
 from .media import ANIMATION
 from .media import AUDIO
 from .media import CONTACT
@@ -130,4 +141,15 @@ __all__ = [
     "CHAT_PERMISSIONS",
     "CHAT_LOCATION",
     "FULL_CHAT",
+    "INLINE_QUERY",
+    "CHOSEN_INLINE_RESULT",
+    "POLL_OPTION",
+    "POLL",
+    "POLL_ANSWER",
+    "CHAT_MEMBER_MEMBER",
+    "CHAT_MEMBER_LEFT",
+    "CHAT_MEMBER_UPDATED",
+    "CHAT_JOIN_REQUEST",
+    "REACTION_TYPE_EMOJI",
+    "MESSAGE_REACTION_UPDATED",
 ]
