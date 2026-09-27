@@ -14,12 +14,16 @@ classifiers = [
     "Operating System :: OS Independent",
     "Framework :: AsyncIO",
     "Topic :: Software Development :: Testing",
+    "Framework :: Pytest",
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.15"
 # Lowest and latest aiogram are both tested in CI.
 aiogram = ">=3.23,<4"
+
+[tool.poetry.plugins."pytest11"]
+aiogram_tests = "aiogram_tests.pytest_plugin"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.3"
