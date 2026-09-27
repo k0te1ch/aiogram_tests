@@ -29,12 +29,24 @@ class DatasetItem(Mapping):
         try:
             data = self._data.copy()
             data.update(**replace_args)
+            self._drop_shadowing_aliases(data, replace_args)
             if self._model and isinstance(self._data, dict):
                 return self._recursive_as_object(data, self._model)
             else:
                 return data
         except (AttributeError, TypeError):
             return None
+
+    def _drop_shadowing_aliases(self, data: dict, replace_args: dict) -> None:
+        """
+        Data keeps some fields under their Telegram alias (``from``), so an override by the field name
+        (``from_user``) would lose to the alias; drop the alias in that case
+        """
+        fields = getattr(self._model, "model_fields", {})
+        for key in replace_args:
+            field = fields.get(key)
+            if field is not None and field.alias and field.alias != key:
+                data.pop(field.alias, None)
 
     def _recursive_as_object(self, data: dict, model: Any):
         """

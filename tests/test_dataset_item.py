@@ -79,3 +79,9 @@ def test_converting_all_dataset_items_to_model():
             continue
 
         item.as_object()
+
+
+def test_override_by_field_name_wins_over_alias():
+    message = dataset.MESSAGE.as_object(from_user=dataset.USER.as_object(id=42))
+
+    assert message.from_user.id == 42
